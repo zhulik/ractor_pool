@@ -23,10 +23,13 @@ Gem::Specification.new do |spec|
   end
   spec.require_paths = ['lib']
 
+  spec.add_development_dependency 'zeitwerk', '~>2.4'
+
   spec.add_development_dependency 'overcommit', '~>0.57'
   spec.add_development_dependency 'rubocop', '~>1.12'
   spec.add_development_dependency 'rubocop-performance', '~>1.10'
   spec.add_development_dependency 'rubocop-rake', '~>0.5'
   spec.add_development_dependency 'rubocop-rspec', '~>2.2'
+  spec.add_development_dependency 'simplecov', '~>0.21'
   spec.add_development_dependency 'solargraph', '~>0.40'
 end

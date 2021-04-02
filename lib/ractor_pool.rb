@@ -1,7 +1,14 @@
 # frozen_string_literal: true
 
-require 'ractor_pool/version'
+require 'rubygems'
+require 'bundler/setup'
 
-# Your code goes here...
+require 'zeitwerk'
+
+loader = Zeitwerk::Loader.for_gem
+
+loader.setup
+loader.eager_load
+
 class RactorPool::Error < StandardError
 end
