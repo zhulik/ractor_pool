@@ -6,23 +6,26 @@ class RactorPool::Pool
   end
 
   def start
+    reducer
     workers
     self
   end
 
-  def schedule(klass, **params)
-    jobs_pipe << { type: :job, class: klass, params: params }
+  def schedule(klass, *args, **params)
+    jobs_pipe << { type: :job, klass: klass, args: args, params: params }
     self
   end
 
   def stop
     jobs_pipe << { type: :stop }
-    results_pipe << { type: :stop }
     workers.each(&:take)
+    results_pipe << { type: :stop }
+    result = reducer.take
     instance_variable_set(:@jobs_pipe, nil)
     instance_variable_set(:@resuts_pipe, nil)
     instance_variable_set(:@workers, nil)
-    self
+    instance_variable_set(:@reducer, nil)
+    result
   end
 
   private
@@ -72,13 +75,37 @@ class RactorPool::Pool
           case msg
           in type: :stop
             break logger.debug("Worker #{worker_id}: stopping...")
-          in type: :job, class: klass, params: params
-            logger.debug("Worker #{worker_id}: running #{klass}.call(#{params}))")
-            results_pipe << { type: :result, worker_id: worker_id, class: klass, params: params,
-                              result: klass.call(**params) }
+          in type: :job, klass: klass, args: args, params: params
+            logger.debug("Worker #{worker_id}: running #{klass}.call(*#{args}, **#{params}))")
+            results_pipe << { type: :result, worker_id: worker_id, klass: klass, args: args, params: params,
+                              result: klass.call(*args, **params) }
           else
             logger.debug("Worker #{worker_id}: Unknown message received: #{msg}")
           end
+        end
+      end
+    end
+  end
+
+  def reducer  # rubocop:disable Metrics/MethodLength
+    @reducer ||= Ractor.new(results_pipe) do |results_pipe|
+      logger = Logger.new($stdout)
+      logger.debug('Reducer: started')
+
+      reducer = RactorPool::Reducer.new(logger)
+      loop do
+        msg = results_pipe.take
+        logger.debug("Reducer: received message: #{msg}")
+        case msg
+        in type: :stop
+          logger.debug('Reducer: stopping...')
+          Ractor.yield(reducer.result)
+          break
+        in type: :result
+          logger.debug("Redcuer: reducing #{msg})")
+          reducer.reduce(**msg)
+        else
+          logger.debug("Reducer: Unknown message received: #{msg}")
         end
       end
     end
