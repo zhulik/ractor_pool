@@ -8,7 +8,16 @@ require 'zeitwerk'
 loader = Zeitwerk::Loader.for_gem
 
 loader.setup
-loader.eager_load
+
+require 'logger'
 
 class RactorPool::Error < StandardError
+end
+
+module RactorPool
+  class << self
+    def new(jobs: Etc.nprocessors)
+      Pool.new(jobs: jobs)
+    end
+  end
 end
