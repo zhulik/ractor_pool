@@ -21,3 +21,6 @@ Metrics/BlockLength:
 
 Style/ClassAndModuleChildren:
   EnforcedStyle: compact
+
+RSpec/ExampleLength:
+  Enabled: false
