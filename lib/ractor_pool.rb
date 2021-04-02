@@ -1,6 +1,7 @@
-require "ractor_pool/version"
+# frozen_string_literal: true
 
-module RactorPool
-  class Error < StandardError; end
-  # Your code goes here...
+require 'ractor_pool/version'
+
+# Your code goes here...
+class RactorPool::Error < StandardError
 end
