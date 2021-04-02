@@ -24,3 +24,6 @@ Style/ClassAndModuleChildren:
 
 RSpec/ExampleLength:
   Enabled: false
+
+Metrics/MethodLength:
+  Max: 15
