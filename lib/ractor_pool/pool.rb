@@ -10,6 +10,11 @@ class RactorPool::Pool
     self
   end
 
+  def schedule(klass, **params)
+    pipe << { type: :job, class: klass, params: params }
+    self
+  end
+
   def stop
     pipe << { type: :stop }
     workers.each(&:take)
@@ -41,16 +46,19 @@ class RactorPool::Pool
     @workers ||= (1..@jobs).map do |worker_id|
       Ractor.new(worker_id, pipe) do |worker_id, pipe|
         logger = Logger.new($stdout)
-        logger.debug("Worker #{worker_id} started")
+        logger.debug("Worker #{worker_id}: started")
         loop do
           msg = pipe.take
-          logger.debug("Worker #{worker_id} received message: #{msg}")
+          logger.debug("Worker #{worker_id}: received message: #{msg}")
           case msg
           in type: :stop
-          break logger.debug("Worker #{worker_id} stopping...")
-
+            break logger.debug("Worker #{worker_id}: stopping...")
+          in type: :job, class: klass, params: params
+            logger.debug("Worker #{worker_id}: running #{klass}.call(#{params}))")
+            klass.call(**params)
+            # TODO: send results back
           else
-            print('message handler')
+            logger.debug("Worker #{worker_id}: Unknown message received: #{msg}")
           end
         end
       end
