@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ractor_pool (0.1.0)
+    ractor_pool (0.1.1)
 
 GEM
   remote: https://rubygems.org/

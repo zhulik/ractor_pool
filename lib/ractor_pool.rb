@@ -11,13 +11,13 @@ loader.setup
 
 require 'logger'
 
-class RactorPool::Error < StandardError
-end
-
 module RactorPool
   class << self
     def new(mapper_class:, jobs: Etc.nprocessors)
       Pool.new(jobs: jobs, mapper_class: mapper_class)
     end
   end
+end
+
+class RactorPool::Error < StandardError
 end
