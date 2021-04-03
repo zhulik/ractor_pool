@@ -5,7 +5,7 @@ class RactorPool::Reducers::CollectReducer < RactorPool::Reducer
     []
   end
 
-  def reduce(**args)
+  def call(**args)
     logger.debug("Reducer received: #{args}")
     @result << args
   end

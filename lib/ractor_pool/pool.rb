@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class RactorPool::Pool
-  def initialize(jobs:, mapper_class:, reducer_class: RactorPool::Reducers::CollectReducer)
+  def initialize(jobs:, mapper_class:, reducer_class:)
     @jobs = jobs
     @logger = Logger.new($stdout)
     @mapper_class = mapper_class

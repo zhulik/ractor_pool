@@ -13,8 +13,8 @@ require 'logger'
 
 module RactorPool
   class << self
-    def new(mapper_class:, jobs: Etc.nprocessors)
-      Pool.new(jobs: jobs, mapper_class: mapper_class)
+    def new(mapper_class:, reducer_class: RactorPool::Reducers::CollectReducer, jobs: Etc.nprocessors)
+      Pool.new(jobs: jobs, mapper_class: mapper_class, reducer_class: reducer_class)
     end
   end
 end
