@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class RactorPool::Pool
-  def initialize(jobs:, mapper:)
+  def initialize(jobs:, mapper_class:)
     @jobs = jobs
     @logger = Logger.new($stdout)
-    @mapper = mapper
+    @mapper_class = mapper_class
   end
 
   def start
@@ -14,7 +14,7 @@ class RactorPool::Pool
   end
 
   def schedule(*args, **params)
-    jobs_pipe << { type: :job, klass: @mapper, args: args, params: params }
+    jobs_pipe << { type: :job, args: args, params: params }
     self
   end
 
@@ -42,15 +42,16 @@ class RactorPool::Pool
 
   def workers # rubocop:disable Metrics/MethodLength
     @workers ||= (1..@jobs).map do |worker_id|
-      Ractor.new(worker_id, jobs_pipe, results_pipe, @logger) do |worker_id, jobs_pipe, results_pipe, logger|
+      Ractor.new(worker_id, jobs_pipe, results_pipe, @mapper_class,
+                 @logger) do |worker_id, jobs_pipe, results_pipe, mapper_class, logger|
         logger.debug("Worker #{worker_id}: started")
         jobs_pipe.subscribe do |data|
           logger.debug("Worker #{worker_id}: received data: #{data}")
           case data
-          in klass: klass, args: args, params: params
-            logger.debug("Worker #{worker_id}: running #{klass}.call(*#{args}, **#{params}))")
-            results_pipe << { type: :result, worker_id: worker_id, klass: klass, args: args, params: params,
-                              result: klass.call(logger, *args, **params) }
+          in args: args, params: params
+            logger.debug("Worker #{worker_id}: running #{mapper_class}.call(*#{args}, **#{params}))")
+            results_pipe << { type: :result, worker_id: worker_id, args: args, params: params,
+                              result: mapper_class.call(logger, *args, **params) }
           else
             logger.debug("Worker #{worker_id}: Unknown data received: #{msg}")
           end
@@ -60,10 +61,10 @@ class RactorPool::Pool
   end
 
   def reducer
-    @reducer ||= Ractor.new(results_pipe, @logger) do |results_pipe, logger|
+    @reducer ||= Ractor.new(results_pipe, @logger, @reducer) do |results_pipe, logger|
       logger.debug('Reducer: started')
 
-      reducer = RactorPool::Reducer.new(logger)
+      reducer = RactorPool::Reducers::CollectReducer.new(logger: logger)
       result = nil
       results_pipe.subscribe do |data|
         logger.debug("Reducer: received data: #{data}")

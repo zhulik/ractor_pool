@@ -9,7 +9,7 @@ RSpec.describe RactorPool::Pool do
         end
       end
 
-      pool = described_class.new(jobs: Etc.nprocessors, mapper: mapper)
+      pool = described_class.new(jobs: Etc.nprocessors, mapper_class: mapper)
       pool.start
       (0..100).each do |n|
         pool.schedule(n)
