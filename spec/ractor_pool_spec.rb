@@ -7,7 +7,7 @@ RSpec.describe RactorPool do
 
   describe '.new' do
     it 'returns an instance of Pool' do
-      expect(described_class.new).to be_an_instance_of(described_class::Pool)
+      expect(described_class.new(mapper: nil)).to be_an_instance_of(described_class::Pool)
     end
   end
 end

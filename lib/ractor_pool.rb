@@ -16,8 +16,8 @@ end
 
 module RactorPool
   class << self
-    def new(jobs: Etc.nprocessors)
-      Pool.new(jobs: jobs)
+    def new(mapper:, jobs: Etc.nprocessors)
+      Pool.new(jobs: jobs, mapper: mapper)
     end
   end
 end

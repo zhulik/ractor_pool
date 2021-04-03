@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 class RactorPool::Pool
-  def initialize(jobs:)
+  def initialize(jobs:, mapper:)
     @jobs = jobs
     @logger = Logger.new($stdout)
+    @mapper = mapper
   end
 
   def start
@@ -12,8 +13,8 @@ class RactorPool::Pool
     self
   end
 
-  def schedule(klass, *args, **params)
-    jobs_pipe << { type: :job, klass: klass, args: args, params: params }
+  def schedule(*args, **params)
+    jobs_pipe << { type: :job, klass: @mapper, args: args, params: params }
     self
   end
 
