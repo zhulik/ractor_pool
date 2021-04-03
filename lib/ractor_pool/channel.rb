@@ -22,15 +22,15 @@ class RactorPool::Channel
   end
 
   def <<(data)
-    @pipe << { type: :data, data: data }
+    @pipe.send({ type: :data, data: data })
   end
 
   def close!
-    @pipe << { type: :close }
+    @pipe.send({ type: :close }, move: true)
   end
 
   def subscribe
-    @pipe << { type: :subscription }
+    @pipe.send({ type: :subscription }, move: true)
     loop do
       msg = @pipe.take
       case msg
