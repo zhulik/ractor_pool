@@ -3,6 +3,7 @@
 class RactorPool::Pool
   def initialize(jobs:)
     @jobs = jobs
+    @logger = Logger.new($stdout)
   end
 
   def start
@@ -40,8 +41,7 @@ class RactorPool::Pool
 
   def workers # rubocop:disable Metrics/MethodLength
     @workers ||= (1..@jobs).map do |worker_id|
-      Ractor.new(worker_id, jobs_pipe, results_pipe) do |worker_id, jobs_pipe, results_pipe|
-        logger = Logger.new($stdout)
+      Ractor.new(worker_id, jobs_pipe, results_pipe, @logger) do |worker_id, jobs_pipe, results_pipe, logger|
         logger.debug("Worker #{worker_id}: started")
         jobs_pipe.subscribe do |data|
           logger.debug("Worker #{worker_id}: received data: #{data}")
@@ -49,7 +49,7 @@ class RactorPool::Pool
           in klass: klass, args: args, params: params
             logger.debug("Worker #{worker_id}: running #{klass}.call(*#{args}, **#{params}))")
             results_pipe << { type: :result, worker_id: worker_id, klass: klass, args: args, params: params,
-                              result: klass.call(*args, **params) }
+                              result: klass.call(logger, *args, **params) }
           else
             logger.debug("Worker #{worker_id}: Unknown data received: #{msg}")
           end
@@ -59,8 +59,7 @@ class RactorPool::Pool
   end
 
   def reducer
-    @reducer ||= Ractor.new(results_pipe) do |results_pipe|
-      logger = Logger.new($stdout)
+    @reducer ||= Ractor.new(results_pipe, @logger) do |results_pipe, logger|
       logger.debug('Reducer: started')
 
       reducer = RactorPool::Reducer.new(logger)

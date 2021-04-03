@@ -3,11 +3,9 @@
 RSpec.describe RactorPool::Pool do
   describe '.start' do
     it 'works' do
-      handler = Class.new do
-        class << self
-          def call(value, **_params)
-            { value: value }
-          end
+      handler = Class.new(RactorPool::Mapper) do
+        def call(value, **_params)
+          { value: value }
         end
       end
 
