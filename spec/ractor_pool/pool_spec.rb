@@ -23,7 +23,7 @@ RSpec.describe RactorPool::Pool do
       pool = described_class.new(jobs: Etc.nprocessors, mapper_class: mapper, reducer_class: reducer)
       pool.start
       (0..100).each do |n|
-        pool.schedule(n)
+        pool.map(n)
       end
       sum = pool.stop
       expect(sum).to eq(50_50)

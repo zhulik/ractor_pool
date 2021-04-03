@@ -14,7 +14,7 @@ class RactorPool::Pool
     self
   end
 
-  def schedule(*args, **params)
+  def map(*args, **params)
     jobs_pipe << { type: :job, args: args, params: params }
     self
   end
