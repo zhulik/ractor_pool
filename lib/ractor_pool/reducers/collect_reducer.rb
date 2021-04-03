@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class RactorPool::Reducers::CollectReducer < RactorPool::Reducer
-  def initial_value
+  def initial_state
     []
   end
 

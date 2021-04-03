@@ -66,12 +66,12 @@ class RactorPool::Pool
       logger.debug('Reducer: started')
 
       reducer = reducer_class.new(logger: logger)
-      result = nil
+      state = reducer.initial_state
       results_pipe.subscribe do |data|
         logger.debug("Reducer: received data: #{data}")
-        result = reducer.call(**data)
+        state = reducer.call(state: state, **data)
       end
-      Ractor.yield(result)
+      Ractor.yield(state)
     end
   end
 end

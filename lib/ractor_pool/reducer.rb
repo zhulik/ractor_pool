@@ -1,18 +1,17 @@
 # frozen_string_literal: true
 
 class RactorPool::Reducer
-  attr_reader :value, :logger
+  attr_accessor :value
 
   def initialize(logger:)
     @logger = logger
-    @value = initial_value
   end
 
-  def initial_value
+  def initial_state
     raise NotImplementedError
   end
 
   private
 
-  attr_writer :value
+  attr_reader :logger
 end

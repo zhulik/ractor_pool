@@ -10,13 +10,13 @@ RSpec.describe RactorPool::Pool do
       end
 
       reducer = Class.new(RactorPool::Reducer) do
-        def initial_value
+        def initial_state
           0
         end
 
-        def call(result:, **_params)
+        def call(state:, result:, **_params)
           logger.debug("Reducer received: #{result}")
-          @value += result
+          state + result
         end
       end
 
