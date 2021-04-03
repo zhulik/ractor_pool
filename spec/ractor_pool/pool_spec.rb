@@ -9,14 +9,24 @@ RSpec.describe RactorPool::Pool do
         end
       end
 
-      pool = described_class.new(jobs: Etc.nprocessors, mapper_class: mapper)
+      reducer = Class.new(RactorPool::Reducer) do
+        def initial_value
+          0
+        end
+
+        def call(result:, **_params)
+          logger.debug("Reducer received: #{result}")
+          @result += result
+        end
+      end
+
+      pool = described_class.new(jobs: Etc.nprocessors, mapper_class: mapper, reducer_class: reducer)
       pool.start
-      (0..100).each do |n|
+      (0..1000).each do |n|
         pool.schedule(n)
       end
-      results = pool.stop
-      sum = results.reduce(0) { |n, result| n + result[:result] }
-      expect(sum).to eq(5050)
+      sum = pool.stop
+      expect(sum).to eq(500_500)
     end
   end
 end

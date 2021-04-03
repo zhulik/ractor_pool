@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class RactorPool::Pool
-  def initialize(jobs:, mapper_class:)
+  def initialize(jobs:, mapper_class:, reducer_class: RactorPool::Reducers::CollectReducer)
     @jobs = jobs
     @logger = Logger.new($stdout)
     @mapper_class = mapper_class
+    @reducer_class = reducer_class
   end
 
   def start
@@ -61,14 +62,14 @@ class RactorPool::Pool
   end
 
   def reducer
-    @reducer ||= Ractor.new(results_pipe, @logger, @reducer) do |results_pipe, logger|
+    @reducer ||= Ractor.new(results_pipe, @logger, @reducer_class) do |results_pipe, logger, reducer_class|
       logger.debug('Reducer: started')
 
-      reducer = RactorPool::Reducers::CollectReducer.new(logger: logger)
+      reducer = reducer_class.new(logger: logger)
       result = nil
       results_pipe.subscribe do |data|
         logger.debug("Reducer: received data: #{data}")
-        result = reducer.reduce(**data)
+        result = reducer.call(**data)
       end
       Ractor.yield(result)
     end
